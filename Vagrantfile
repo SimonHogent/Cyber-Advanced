@@ -1,6 +1,6 @@
 
-HOST_ONLY_NETWORK = "vboxnet1" # Typically on Linux/Mac
-#HOST_ONLY_NETWORK = "VirtualBox Host-Only Ethernet Adapter #2" # Typically on Windows
+#HOST_ONLY_NETWORK = "vboxnet1" # Typically on Linux/Mac
+HOST_ONLY_NETWORK = "VirtualBox Host-Only Ethernet Adapter #2" # Typically on Windows
 
 Vagrant.configure("2") do |config|
     config.vm.define "companyrouter" do |host|
@@ -175,6 +175,24 @@ Vagrant.configure("2") do |config|
             # Default gateway
             nmcli connection modify "System eth1" ipv4.gateway 172.10.10.254
             systemctl restart NetworkManager
+        SHELL
+    end
+     config.vm.define "red" do |host|
+        host.vm.box = "kalilinux/rolling"
+        host.vm.hostname = "red"
+
+        host.vm.network "private_network", ip: "192.168.62.43", netmask: "255.255.255.0", name: HOST_ONLY_NETWORK
+
+        host.vm.provider :virtualbox do |v|
+            v.name = "red"
+            v.cpus = "2"
+            v.memory = "2048"
+            v.customize ["modifyvm", :id, "--groups", "/CSA"]
+        end
+
+        host.vm.provision "shell", inline: <<-SHELL
+        # Set default gateway to ISP router
+        ip route replace default via 192.168.62.254
         SHELL
     end
 end

@@ -14,7 +14,7 @@ vms = [
 ]
 
 if platform.system() == "Windows":
-    vboxmanage_cmd = r"C:\Program Files\Oracle\VirtualBox\VBoxManage.exe"
+    vboxmanage_cmd = r"D:\New Folder\VBoxManage.exe"
 else:
     vboxmanage_cmd = (
         "VBoxManage"  # On Linux/Mac, VBoxManage is typically in the system PATH
