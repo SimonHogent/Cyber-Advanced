@@ -89,7 +89,7 @@ ssh -L 8080:172.30.20.10:80 ca-companyrouter
 ```
 Browsing to `http://localhost:8080` on the laptop shows the "Welcome to the cybersec webserver!" page.
 
-![Webpage via SSH tunnel](<img width="1212" height="944" alt="image" src="https://github.com/user-attachments/assets/ec0f0ec6-dbff-4086-8cc7-0962ac15a0fe" />)
+![Webpage via SSH tunnel]<img width="1212" height="944" alt="image" src="https://github.com/user-attachments/assets/ec0f0ec6-dbff-4086-8cc7-0962ac15a0fe" />
 
 
 ### Example 2 — access the database from the host
