@@ -97,7 +97,13 @@ Browsing to `http://localhost:8080` on the laptop shows the "Welcome to the cybe
 ```bash
 ssh -L 3307:172.30.0.15:3306 ca-companyrouter
 ```
-Verified by reading the MariaDB handshake banner on `127.0.0.1:3307` (see above).
+Verified with HeidiSQL connected to `127.0.0.1:3307` as `toor`/`summer`: `SELECT CURRENT_USER()` returns `toor@172.30.255.254` (companyrouter's internal IP — the tunnel endpoint), confirming authenticated access to the database through the forwarded port.
+
+<img width="796" height="300" alt="image" src="https://github.com/user-attachments/assets/8bde6d16-8bba-4eac-99c4-a485dfbc0e3d" />
+
+<img width="885" height="413" alt="image" src="https://github.com/user-attachments/assets/346c9c2b-0cb6-4abf-947c-4bbb64e8493d" />
+
+
 
 ### Example 3 — both at the same time, one command
 
