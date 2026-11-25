@@ -119,7 +119,16 @@ ssh -J vagrant@192.168.62.253 vagrant@172.30.20.10
 ```
 Logs in on `web` without needing any static route on the laptop for `172.30.0.0/16` — the jump host (companyrouter) handles the routing, the laptop only needs a route to the bastion itself.
 
-## Follow-up (hardening, not yet done)
+## Hardening: dedicated user + password authentication disabled
 
-* Disable `PasswordAuthentication` in `sshd_config` on every machine once key-based login is confirmed stable.
-* Create a dedicated non-default user (instead of relying on `vagrant`) for daily SSH access.
+Following up on the earlier note that `vagrant`/`vagrant` still worked as a fallback login (see lab 2), this was fixed:
+
+* **Dedicated non-default user.** A `ca` user was created on all 8 machines (companyrouter, isprouter, homerouter, dns, web, database, employee, remote-employee), with the existing `id_ed25519_ca` public key installed in its `~/.ssh/authorized_keys`, and passwordless `sudo` via a dedicated `/etc/sudoers.d/ca` drop-in (`NOPASSWD: ALL`) rather than relying on the shared `%wheel` entry (which still requires a password). `~/.ssh/config` was updated so `ssh ca-<host>` now logs in as `ca` by default.
+* **`PasswordAuthentication no`** was set in `/etc/ssh/sshd_config` on every machine, and `sshd` was restarted — one machine at a time, verifying key-based login still worked immediately after each restart, before moving to the next.
+* **Verification:** for every machine, forcing a password-only attempt (`ssh -o PubkeyAuthentication=no -o PasswordAuthentication=yes -o BatchMode=yes vagrant@<host>`) now returns `Permission denied` without even a password prompt — the `vagrant`/`vagrant` hole found in lab 2 is closed.
+
+Three issues came up while doing this, each worth documenting since they're easy to miss:
+
+* **CRLF in `authorized_keys`.** Building the remote setup script as a PowerShell here-string and interpolating the public key into it silently inserted a `` at the end of the key line. Harmless in the key's comment field (doesn't break parsing), but worth knowing about when generating files remotely from Windows.
+* **Alpine locks new accounts by default.** `adduser -D` leaves the account "locked" (`!` in `/etc/shadow`). On AlmaLinux (RHEL-derived OpenSSH), a locked account can still log in via public key — only password authentication is refused. On Alpine's OpenSSH build, a locked account is refused **outright, including public-key auth** (`User ca not allowed because account is locked` — found by running `sshd -d` on an alternate port/in place of the live daemon and reading the debug output). Fix: give the account a real password hash (`passwd`/`chpasswd`), even though it's never used, since `PasswordAuthentication no` means it can't be used to log in anyway.
+* **`sshd_config.d` drop-ins win over `sshd_config`.** On AlmaLinux 9, `/etc/ssh/sshd_config` has `Include /etc/ssh/sshd_config.d/*.conf` near the top, and `/etc/ssh/sshd_config.d/50-cloud-init.conf` already sets `PasswordAuthentication yes`. Because OpenSSH uses "first obtained value wins" for most directives, that drop-in silently overrode our edit to the main file — `sshd -T` (which prints the fully resolved effective config) is what caught this. Fixed by editing the drop-in itself, not just `sshd_config`.

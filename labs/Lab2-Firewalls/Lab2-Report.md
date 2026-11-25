@@ -107,6 +107,7 @@
           iif lo accept
           ct state established,related accept
           iif "eth2" accept                 # internal LAN may manage the router
+          iif "eth1" tcp dport 22 accept     # SSH bastion access from the fake internet (needed for lab 3 ProxyJump)
       }
 
       chain forward {
@@ -142,6 +143,7 @@
   }
   ```
   * Stored in `/etc/sysconfig/nftables.conf`, validated with `nft -c -f`, loaded via `systemctl enable --now nftables`.
+  * **SSH bastion access:** `iif "eth1" tcp dport 22 accept` allows SSH from the fake internet straight to companyrouter itself — this is what makes companyrouter usable as an SSH bastion (see lab 3) even with the firewall active. Without it, `ssh ca-companyrouter` (and every `ProxyJump` through it) would be blocked by the `policy drop` on `input`.
 
 * **Verification.**
   * From red: `curl -I http://www.cybersec.internal` → `HTTP/1.1 200 OK` (website still reachable).
