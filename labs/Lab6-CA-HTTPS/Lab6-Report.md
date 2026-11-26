@@ -29,7 +29,6 @@ systemctl status <service-name>
 - The service's `.jar` file and its `systemd` unit file (`/etc/systemd/system/<service>.service`) are the files needed to run it.
 
 ![ProxyPass/ProxyPassReverse configuration](img/Grep-Proxy.png)
-![Backend process/port identification](img/HTP.png)
 ![Application reachable over plain HTTP before TLS](img/WorkingHTTP.png)
 
 ## 2. Certificate Authority (CA) Setup
@@ -184,6 +183,7 @@ Result: `TLSv1.2` with `AES256-GCM-SHA384` (no `ECDHE-` prefix → confirms stat
 - Yes — after loading the key, the `Application Data` packets are decrypted and shown as plain `HTTP` (visible GET requests / 200 OK responses).
 
 ![TLS 1.2 traffic decrypted via RSA private key](img/WiresharkCapture.png)
+![Decrypted HTTP traffic (GET /cmd, 200 OK)](img/HTP.png)
 
 ## 8. HTTPS with TLS 1.3 (separate keypair)
 
