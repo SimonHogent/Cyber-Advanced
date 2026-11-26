@@ -28,9 +28,9 @@ systemctl status <service-name>
 - The backend is a **Java** application (visible via `ps aux` as a running `java -jar ...` process), managed by its own `systemd` service and listening only on `localhost:9200`. It is not reachable directly from outside — all external traffic must go through Apache's reverse proxy on port 80/443.
 - The service's `.jar` file and its `systemd` unit file (`/etc/systemd/system/<service>.service`) are the files needed to run it.
 
-📸 `img/Grep-Proxy.png` – ProxyPass/ProxyPassReverse configuration
-📸 `img/HTP.png` – backend process/port identification (`ps aux`, `ss -tlnp`)
-📸 `img/WorkingHTTP.png` – application reachable over plain HTTP through the reverse proxy, before any TLS is configured
+(img/Grep-Proxy.png) – ProxyPass/ProxyPassReverse configuration
+(img/HTP.png) – backend process/port identification (`ps aux`, `ss -tlnp`)
+(img/WorkingHTTP.png) – application reachable over plain HTTP through the reverse proxy, before any TLS is configured
 
 ## 2. Certificate Authority (CA) Setup
 
@@ -56,7 +56,7 @@ openssl x509 -in ca.crt -noout -text
 - Every file's role is clear once you know OpenSSL's naming convention: `.key` = private key, `.csr` = signing request (unsigned), `.crt` = signed certificate.
 - A certificate (CA or server) is inspected with `openssl x509 -in <file> -noout -text`.
 
-📸 `img/SS-CA.png` – CA key/certificate generation and verification output
+(img/SS-CA.png) – CA key/certificate generation and verification output
 
 ## 3. Server Certificate (CSR + SAN)
 
@@ -109,7 +109,7 @@ openssl x509 -in web.crt -noout -text | grep -A1 "Subject Alternative Name"
 - A **CSR (Certificate Signing Request)** is an unsigned request containing the public key and identity info (CN, SAN, org...) that is sent to a CA to be signed into a trusted certificate.
 - A **wildcard certificate** (e.g. `*.cybersec.internal`) is valid for every subdomain of a domain. It is convenient, but less safe: a single private key covers all subdomains, so if one service is compromised, the attacker can impersonate *every* subdomain with the same key — it also makes certificate-transparency-based reconnaissance easier for an attacker.
 
-📸 `img/SanCert-CaOndertekend.png` – CSR generation, CA signing and SAN verification
+(img/SanCert-CaOndertekend.png) – CSR generation, CA signing and SAN verification
 
 ## 4. Apache HTTPS Configuration (mod_ssl)
 
@@ -143,13 +143,13 @@ Because the CA is private/self-signed, browsers reject it by default until it is
 
 **Before trust** (fresh browser profile, CA not yet imported):
 
-📸 `img/WebsiteRisk.png` – "Warning: Potential Security Risk Ahead"
+(img/WebsiteRisk.png) – "Warning: Potential Security Risk Ahead"
 
 **Importing the CA** (Firefox): `about:preferences#privacy` → *Certificates* → *View Certificates* → *Authorities* → *Import* → select `ca.crt` → check *Trust this CA to identify websites*.
 
 **After trust:**
 
-📸 `img/SecureWebsite.png` – valid padlock, page loads over HTTPS
+(img/SecureWebsite.png) – valid padlock, page loads over HTTPS
 
 **Answers:**
 - Only **one file** needs to be added to the browser/client: the CA's public certificate, `ca.crt` (never the CA's private key).
@@ -183,7 +183,7 @@ Result: `TLSv1.2` with `AES256-GCM-SHA384` (no `ECDHE-` prefix → confirms stat
 - Wireshark needs the server's **RSA private key** (`web.key`) to decrypt TLS 1.2 traffic that uses static RSA key exchange.
 - Yes — after loading the key, the `Application Data` packets are decrypted and shown as plain `HTTP` (visible GET requests / 200 OK responses).
 
-📸 `img/WiresharkCapture.png` – TLS 1.2 traffic decrypted via RSA private key
+(img/WiresharkCapture.png) – TLS 1.2 traffic decrypted via RSA private key
 
 ## 8. HTTPS with TLS 1.3 (separate keypair)
 
@@ -204,7 +204,7 @@ Result: `TLSv1.3` with `TLS_AES_256_GCM_SHA384`.
 
 Loading the **same RSA private key** (`web-tls13.key`, or even the old `web.key`) into Wireshark's RSA keys list and repeating the capture:
 
-📸 `img/Undecrypted-TLS1.3.png` – traffic stays as encrypted `Application Data`, decryption fails
+(img/Undecrypted-TLS1.3.png) – traffic stays as encrypted `Application Data`, decryption fails
 
 **Answer (theory):** TLS 1.3 removed static RSA key exchange from the protocol entirely. Every TLS 1.3 handshake uses an ephemeral (Elliptic-Curve) Diffie-Hellman key exchange, which provides **Perfect Forward Secrecy**: the session keys are derived from a fresh, random key pair generated for that single session and are never transmitted on the wire. The server's long-term RSA private key is only used to *sign* the handshake for authentication, not to encrypt/derive the session keys — so having it gives Wireshark no way to reconstruct the session keys, regardless of key length or algorithm strength.
 
@@ -226,7 +226,7 @@ cp $HOME/sslkeylog-browser.log $HOME/sslkeylog-browser-capture1.log
 
 Wireshark: Edit → Preferences → Protocols → TLS → "(Pre)-Master-Secret log filename" → `/home/vagrant/sslkeylog-browser-capture1.log`.
 
-📸 `img/Decrypted-TLS1.3.png` – TLS 1.3 traffic decrypted via client-side SSLKEYLOGFILE, HTTP `GET /cmd` / `200 OK` visible
+(img/Decrypted-TLS1.3.png) – TLS 1.3 traffic decrypted via client-side SSLKEYLOGFILE, HTTP `GET /cmd` / `200 OK` visible
 
 This method works for **any** TLS version and key-exchange mechanism, because it logs the actual derived traffic secrets instead of relying on the server's private key.
 
